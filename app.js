@@ -1,30 +1,73 @@
 var API_URL = 'https://das-lab.org/cse331fa2019/PhotosBackend/';
-var GROUP_ID = 23498;
+var POST_GROUP_ID = 23498;
 
 $(document).ready(function() {
   loadResults();
   setupCreatePost();
+  setupLeaveFeedback();
 });
 
+var APP = {
+  results: [],
+  availableTags: []
+};
+
 function loadResults() {
-   
-  function resultHtml(res) {
-    console.log(res)
+  function resultHtml(post) {
     return `
       <div class="card result_card">
-        <img src=${(API_URL + res.tn_src)} class="card-img-top"/>
-        <h4>Post Title</h4>
-        <p>Post description goes right here</p>
+        <img src="${(API_URL + post.tn_src)}" class="card-img-top"/>
+        <h4>${post.payload.title}</h4>
+        <p>${post.payload.description}</p>
+        <p class="likeCount">${post.payload.likes} ${post.payload.likes === 1 ? 'Like' : 'Likes'}</p>
+        <button class="likeBtn" onclick="onLike(${post.id})">Like</button>
+        <button class="commentBtn" onclick="onComment(${post.id})">Comment</button>
       </div>
     `;
   }
 
-  $.getJSON(API_URL + 'getPhotos.php?grp_id=' + GROUP_ID, function(data) {
-    const render = data.map(result => resultHtml(result)).join(' ');
-    $("#resultsCards").html(render);
+  function getPost(postId) {
+    return new Promise((res, rej) => $.getJSON(API_URL + 'viewPhoto.php?id=' + postId, data => res(data)));
+  }
+
+  $.getJSON(API_URL + 'getPhotos.php?grp_id=' + POST_GROUP_ID, (data) => { 
+    Promise.all(data.map(result => getPost(result.id))).then(viewResults => {
+      const results = viewResults
+        .map(([view], i) => {
+          const result = data[i];
+          const payload = JSON.parse(view.description);
+
+          return {
+            ...result,
+            ...view,
+            payload: {
+              likes: 0,
+              tags: [],
+              ...payload
+            },
+            description: undefined
+          };
+        });
+
+      const render = results.map(result => resultHtml(result)).join(' ');
+      $("#resultsCards").html(render);
+
+      let allTags = results
+        .map(r => r.payload.tags || [])
+        .flat()
+        .map(t => t.toUpperCase())
+        .filter(t => !!t)
+        .filter((t, i, a) => a.indexOf(t) === i);
+      
+      APP.results = results;
+      APP.availableTags = allTags;
+    })
   });
 }
 
+/*
+ * Setup code for the create post popup
+ */
 function setupCreatePost() {
   $(':file').on('change', function() {   
     var file = this.files[0];
@@ -37,12 +80,15 @@ function setupCreatePost() {
   $('#create-post-btn').on('click', function() {
     var payload = { 
       title: $('#post-title').val(), 
-      description: $('#post-description').val()
+      description: $('#post-description').val(),
+      tags: ($('#post-tags').val() || '').toUpperCase().split(' '),
+      likes: 0,
+      comments: []
     };
 
     var formData = new FormData(document.forms['uploader']);
     formData.append('description', JSON.stringify(payload));
-    formData.append('grp_id', GROUP_ID);
+    formData.append('grp_id', POST_GROUP_ID);
 
     $.ajax({
       url: API_URL + 'uploadPhoto.php',
@@ -64,14 +110,56 @@ function setupCreatePost() {
       }
     }).done(function() {
       loadResults();
-      alert("Post Created"); // TODO: beautify
       
       $(':file').val('');
       $('#post-title').val('');
       $('#post-description').val('');
+      $('#post-tags').val('');
       $('#create-post-modal').modal('hide');
     });
   });
+}
+
+function setupLeaveFeedback() {
+
+}
+
+// --------------------------
+// Updating a photo
+
+function updatePhoto(photoId, onMutatePayload) {
+
+}
+
+function onComment(postId) {
+  alert('Comment');
+}
+
+function onLike(postId) {
+  alert('Like');
+  updatePhoto(postId, function(payload) {
+    payload.likeCount = payload.likeCount ? (payload.likeCount + 1) : 1;
+    return payload;
+  });
+}
+
+// --------------------------
+// Code for logging
+
+function log(category, code, msg) {
+  alert(`${category} / ${code}: ${msg}`);
+}
+
+function logError(code, msg) {
+  log('ERROR', code, msg);
+}
+
+function logAction(code, msg) {
+  log('ACTION', code, msg);
+}
+
+function logNote(code, msg) {
+  log('NOTE', code, msg);
 }
 
 
