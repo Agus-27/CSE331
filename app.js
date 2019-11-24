@@ -128,7 +128,17 @@ function setupLeaveFeedback() {
 // Updating a photo
 
 function updatePhoto(photoId, onMutatePayload) {
-
+  // $.ajax({
+  //     url: $path_to_backend + 'updatePhoto.php',
+  //     type: 'POST',
+  //     data: {id: photo_id,
+  //         description: $('#descr_text').val()}
+  // })
+  // .done(function()
+  // {
+  //     alert("Description updated for photo " + photo_id);
+  //     location.href = "viewPhoto.html?id=" + photo_id;
+  // });
 }
 
 function onComment(postId) {
@@ -137,10 +147,10 @@ function onComment(postId) {
 
 function onLike(postId) {
   alert('Like');
-  updatePhoto(postId, function(payload) {
-    payload.likeCount = payload.likeCount ? (payload.likeCount + 1) : 1;
-    return payload;
-  });
+  // updatePhoto(postId, function(payload) {
+  //   payload.likeCount = payload.likeCount ? (payload.likeCount + 1) : 1;
+  //   return payload;
+  // });
 }
 
 // --------------------------
@@ -161,50 +171,3 @@ function logAction(code, msg) {
 function logNote(code, msg) {
   log('NOTE', code, msg);
 }
-
-
-// $(':button').on('click', function() 
-// {
-//     // for data, we want to submit the photo and the description
-//     var photoFormData = new FormData(document.forms['uploader']);
-//     // include the group ID
-//     photoFormData.append('grp_id', 756756);
-    // $.ajax({
-    //     url: $path_to_backend + 'uploadPhoto.php',
-    //     type: 'POST',
-    //     data: photoFormData,
-    //     // responseType: 'application/json',
-
-    //     // some flags for jQuery
-    //     cache: false,
-    //     contentType: false,
-    //     processData: false,
-
-    //     // Custom XMLHttpRequest
-    //     xhr: function() {
-    //         var myXhr = $.ajaxSettings.xhr();
-    //         if (myXhr.upload) {
-    //             // For handling the progress of the upload
-    //             myXhr.upload.addEventListener('progress', function(e) {
-    //                 if (e.lengthComputable) {
-    //                     $('progress').attr({
-    //                         value: e.loaded,
-    //                         max: e.total,
-    //                     });
-    //                 }
-    //             } , false);
-    //         }
-    //         return myXhr;
-    //     }
-    // })
-    // .done(function()
-    // {
-    //     // let user know upload finished
-    //     alert("File uploaded!");
-    //     // refresh photos
-    //     fetchPhotos();
-    //     // clear the upload form
-    //     $(':file').val('');
-    //     $('#description').val('');
-    // });
-// });
