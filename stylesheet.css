@@ -60,7 +60,7 @@
 .likeBtn{
   position: relative;
   top:-90px;
-  left: -140px;
+  left: -135px;
   border: none;
   background-color: transparent;
   font-size:30px;
@@ -73,12 +73,6 @@
   position: relative;
   top:-90px;
   left: 120px;
-}
-
-
-
-.create-post-btn {
-
 }
 
 .feedback-comment {
