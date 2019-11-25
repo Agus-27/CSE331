@@ -1,10 +1,11 @@
 var API_URL = 'https://das-lab.org/cse331fa2019/PhotosBackend/';
 var POST_GROUP_ID = 19994;
 var KEY = null;
+var USER_ID = null;
 
 $(document).ready(function() {
   loadAccount();
-  loadResults();
+  loadResults(true);
   setupCreatePost();
   setupLeaveFeedback();
 });
@@ -23,19 +24,26 @@ function loadAccount() {
   } else if (!pk) {
     localStorage.setItem('userPrivateKey', KEY.getPrivateKey());
   }
+
+  if (localStorage.getItem('userId')) {
+    USER_ID = localStorage.getItem('userId');
+  } else {
+    USER_ID = Math.ceil(Math.random() * 1000000);
+    localStorage.setItem('userId', USER_ID);
+  }
 }
 
-function loadResults() {
+function loadResults(isInitial = false) {
   function resultHtml(post) {
     const isOwned = post.payload.publicKey === KEY.getPublicKey();
     const commentCount = (post.payload.comments || []).length || 0;
 
     return `
       <div class="card result_card">
-        <img src="${(API_URL + post.src)}" class="card-img-top"/>
-        <h4>${post.payload.title}</h4>
-        <p class ="commentsP">${post.payload.description}</p>
-        <p class="likeCount">${post.payload.likes} ${post.payload.likes === 1 ? 'Like' : 'Likes'}</p>
+        <img src="${(API_URL + post.src)}" class="card-img-top" onclick="logAction('POST_MISCLICK', 'User clicked post image')"/>
+        <h4 onclick="logAction('POST_MISCLICK', 'User clicked post title')">${post.payload.title}</h4>
+        <p class ="commentsP" onclick="logAction('POST_MISCLICK', 'User clicked post description')">${post.payload.description}</p>
+        <p class="likeCount" onclick="logAction('POST_MISCLICK', 'User clicked like count')">${post.payload.likes} ${post.payload.likes === 1 ? 'Like' : 'Likes'}</p>
         <button class="likeBtn" onclick="onLike(${post.id})">Like</button>
         <button class="commentBtn" onclick="onComment(${post.id})">Comment</button>
         ${commentCount > 0 && isOwned ? `<button class="viewCommentsBtn" onclick="onViewComments(${post.id})">View ${commentCount} Comment${commentCount === 1 ? '' : 's'}</button>` : ''}
@@ -49,6 +57,15 @@ function loadResults() {
 
   const params = (new URL(document.location)).searchParams;
   const searchTags = (params.get('tags') || '').split(',').filter(t => !!t);
+
+  if (isInitial) {
+    if (searchTags.length > 0) {
+      logAction('LOADED_FROM_SEARCH#TAG_COUNT', searchTags.length)
+      logAction('LOADED_FROM_SEARCH#TAG_VALUES', searchTags)
+    } else {
+      logAction('LOADED_WITHOUT_SEARCH', 'Page loaded with no search tags selected')
+    }
+  }
 
   $.getJSON(API_URL + 'getPhotos.php?grp_id=' + POST_GROUP_ID, (data) => { 
     Promise.all(data.map(result => getPost(result.id))).then(viewResults => {
@@ -106,13 +123,18 @@ function setupAutoComplete(tags) {
 function setupCreatePost() {
   $(':file').on('change', function() {   
     var file = this.files[0];
+    logAction('SELECTED_PHOTO', 'User selected a photo to upload');
+    
     if (file.size > 10485760) {
       alert('Max upload size is 10 MB.');
       $(':file').val('');
+      logError('PHOTO_TOO_LARGE', 'User selected a photo that was too large');
     }
   });
 
   $('#create-post-btn').on('click', function() {
+    logAction('CONFIRM_POST_CREATION', 'User confirmed post creation');
+
     var payload = { 
       title: $('#post-title').val(), 
       description: $('#post-description').val(),
@@ -180,6 +202,7 @@ function updatePhoto(postId, onMutatePayload) {
 }
 
 function onLike(postId) {
+  logAction('LIKED_POST', 'User clicked like on post: ' + postId);
   updatePhoto(postId, function(payload) {
     payload.likes = payload.likes ? (payload.likes + 1) : 1;
     return payload;
@@ -187,6 +210,7 @@ function onLike(postId) {
 }
 
 function onComment(postId) {
+  logAction('CLICKED_COMMENT_ON_POST', 'User clicked comment on post: ' + postId);
   $('#post-id').val(postId);
   $('#comment-msg').val('');
   $('#add-feedback-modal').modal('show');
@@ -205,6 +229,7 @@ function onViewComments(postId) {
   const comments = post.payload.comments.map(encryptedMessage => KEY.decrypt(encryptedMessage));
   const renderedComments = comments.map(c => commentHtml(c)).join('');
 
+  logAction('CLICKED_VIEW_COMMENTS', 'User clicked view comments: ' + postId);
   $("#view-feedback-comments").html(renderedComments);
   $('#view-feedback-modal').modal('show');
 }
@@ -225,6 +250,8 @@ function setupLeaveFeedback() {
     
     const encryptedMessage = postKey.encrypt(message);
 
+    logAction('CONFIRM_COMMENT', 'User added a comment to post: ' + postId);
+
     updatePhoto(postId, function(payload) {
       const comments = payload.comments || [];
       comments.push(encryptedMessage);
@@ -242,8 +269,24 @@ function setupLeaveFeedback() {
 // Code for logging
 
 function log(category, code, msg) {
-  alert(`${category} / ${code}: ${msg}`);
+  const userId = USER_ID;
+  const payload = { category, code, message: msg };
+
+  $.ajax({
+    url: API_URL + 'logEvent.php',
+    type: 'POST',
+    data: { grp_id: POST_GROUP_ID, user_id: userId, event: JSON.stringify(payload) }
+  }).done(() => console.log(`${category} / ${code}: ${msg}`))
 }
+
+// /logEvent.php
+// This endpoint can be used to make an entry in your log. It requires the following parameters:
+// grp_id
+// The ID of the project group who is logging this event.
+// user_id
+// The ID of the particular user being tracked. Should be an integer.
+// event
+// A textual description of the event being logged.
 
 function logError(code, msg) {
   log('ERROR', code, msg);

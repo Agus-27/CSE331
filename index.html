@@ -25,11 +25,13 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="background: #563d7c !important">
     <div class="container">
       <a class="navbar-brand" href="#">Artso</a>
-      <button class="btn btn-success create-post-btn" type="button" data-toggle="modal" data-target="#create-post-modal">Create Post</button>
+      <button class="btn btn-success create-post-btn" type="button" data-toggle="modal" data-target="#create-post-modal" 
+        onclick="logAction('CLICKED_CREATE_POST', 'User clicked create post button in navigation bar');">Create Post</button>
 
       <form class="form-inline my-2 my-lg-0">
         <input class="form-control mr-sm-2" type="search" placeholder="Search Tags" aria-label="Search" id="tag-search" name="tags">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit" 
+          onclick="logAction('CLICKED_SEARCH', 'User clicked the search button')">Search</button>
       </form>
     </div>
   </nav>
