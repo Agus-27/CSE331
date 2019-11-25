@@ -17,11 +17,12 @@ var APP = {
 
 function loadResults() {
   function resultHtml(post) {
+    console.log(post)
     return `
       <div class="card result_card">
-        <img src="${(API_URL + post.tn_src)}" class="card-img-top"/>
+        <img src="${(API_URL + post.src)}" class="card-img-top"/>
         <h4>${post.payload.title}</h4>
-        <p>${post.payload.description}</p>
+        <p class ="commentsP">${post.payload.description}</p>
         <p class="likeCount">${post.payload.likes} ${post.payload.likes === 1 ? 'Like' : 'Likes'}</p>
         <button class="likeBtn" onclick="onLike(${post.id})">Like</button>
         <button class="commentBtn" onclick="onComment(${post.id})">Comment</button>
@@ -158,6 +159,11 @@ function onComment(postId) {
   $('#comment-msg').val('');
   $('#add-feedback-modal').modal('show');
 }
+
+// async function getPic(){
+
+//   return
+// }
 
 function setupLeaveFeedback() {
   $('#add-comment-btn').on('click', function() {

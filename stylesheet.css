@@ -1,0 +1,28 @@
+#resultsCards {
+    margin-top: 25px;
+    
+  }
+
+  .result_card {
+    width: 400px !important;  
+    margin: 10px;
+    display: inline-block;
+    vertical-align: text-top;
+  }
+
+  .result_card img {
+    height:300px;
+    width: 400px;
+    overflow: hidden;
+  }
+
+  .commentsP{
+      height:20px;
+      overflow: hidden;
+  }
+
+  .create-post-btn {
+
+  }
+
+  
