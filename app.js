@@ -47,6 +47,9 @@ function loadResults() {
     return new Promise((res, rej) => $.getJSON(API_URL + 'viewPhoto.php?id=' + postId, data => res(data)));
   }
 
+  const params = (new URL(document.location)).searchParams;
+  const searchTags = (params.get('tags') || '').split(',').filter(t => !!t);
+
   $.getJSON(API_URL + 'getPhotos.php?grp_id=' + POST_GROUP_ID, (data) => { 
     Promise.all(data.map(result => getPost(result.id))).then(viewResults => {
       const results = viewResults
@@ -64,9 +67,12 @@ function loadResults() {
             },
             description: undefined
           };
-        });
+        })
+        
+      const containsTags = (result) => searchTags.length === 0 || (result.payload.tags || []).some(t => searchTags.includes(t));
+      const displayResults = results.filter(containsTags);
 
-      const render = results.map(result => resultHtml(result)).join(' ');
+      const render = displayResults.map(result => resultHtml(result)).join(' ');
       $("#resultsCards").html(render);
 
       let allTags = results
@@ -75,10 +81,22 @@ function loadResults() {
         .map(t => t.toUpperCase())
         .filter(t => !!t)
         .filter((t, i, a) => a.indexOf(t) === i);
+
+      setupAutoComplete(allTags);
       
       APP.results = results;
       APP.availableTags = allTags;
     })
+  });
+}
+
+function setupAutoComplete(tags) {
+  $('#tag-search').tagsInput({
+    placeholder: 'Search by tags',
+    autocomplete: {
+      source: tags
+    },
+    whitelist: tags
   });
 }
 
