@@ -1,6 +1,12 @@
 #resultsCards {
+  
   margin-top: 25px;
   text-align: center;
+}
+
+.card:nth-child(even){
+  position: relative;
+  left: 50px;
 }
 
 .result_card {
