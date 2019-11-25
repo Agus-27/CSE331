@@ -41,10 +41,10 @@ function loadResults(isInitial = false) {
     return `
       <div class="card result_card">
         <img src="${(API_URL + post.src)}" class="card-img-top" onclick="logAction('POST_MISCLICK', 'User clicked post image')"/>
-        <h4 onclick="logAction('POST_MISCLICK', 'User clicked post title')">${post.payload.title}</h4>
+        <h4 class="title" onclick="logAction('POST_MISCLICK', 'User clicked post title')">${post.payload.title}</h4>
         <p class="description" onclick="logAction('POST_MISCLICK', 'User clicked post description')">${post.payload.description}</p>
         <p class="likeCount" onclick="logAction('POST_MISCLICK', 'User clicked like count')">${post.payload.likes} ${post.payload.likes === 1 ? 'Like' : 'Likes'}</p>
-        <button class="likeBtn" onclick="onLike(${post.id})">Like</button>
+        <button class="likeBtn" onclick="onLike(${post.id})"><i class="fa fa-heart"></i></button>
         <button class="commentBtn" onclick="onComment(${post.id})">Comment</button>
         ${commentCount > 0 && isOwned ? `<button class="viewCommentsBtn" onclick="onViewComments(${post.id})">View ${commentCount} Comment${commentCount === 1 ? '' : 's'}</button>` : ''}
       </div>

@@ -25,9 +25,56 @@
 
 .commentsP{
   text-align:left;
-    height:20px;
-    overflow: hidden;
+  height:20px;
+  overflow: hidden;
 }
+
+.title{
+  background: #f3f3f3;
+}
+
+.description{
+  position: relative;
+  top: -10px;
+  height: 24px;
+  background: #f3f3f3;
+  overflow: hidden;
+  transition-timing-function: ease;
+}
+
+.description:hover{
+  height: auto;
+  transition-timing-function: ease;
+}
+
+.likeCount{
+  text-align:left;
+  height: 40px;
+  background: #f3f3f3;
+  position: relative;
+  top:-26px;
+  padding-left: 40px;
+}
+
+.likeBtn{
+  position: relative;
+  top:-90px;
+  left: -140px;
+  border: none;
+  background-color: transparent;
+  font-size:30px;
+  color:#fa8273
+}
+
+.commentBtn{
+  background-color: transparent;
+  border: none;
+  position: relative;
+  top:-90px;
+  left: 120px;
+}
+
+
 
 .create-post-btn {
 
