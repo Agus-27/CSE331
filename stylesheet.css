@@ -48,6 +48,7 @@
 }
 
 .likeCount{
+  border-radius: 4px;
   text-align:left;
   height: 40px;
   background: #f3f3f3;
