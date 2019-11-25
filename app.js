@@ -1,5 +1,8 @@
 var API_URL = 'https://das-lab.org/cse331fa2019/PhotosBackend/';
 var POST_GROUP_ID = 23498;
+var USER_ID = null;
+var USER_PRIVATE_KEY = null;
+var USER_PUBLIC_KEY = null;
 
 $(document).ready(function() {
   loadResults();
@@ -120,37 +123,58 @@ function setupCreatePost() {
   });
 }
 
-function setupLeaveFeedback() {
-
-}
-
 // --------------------------
 // Updating a photo
 
-function updatePhoto(photoId, onMutatePayload) {
-  // $.ajax({
-  //     url: $path_to_backend + 'updatePhoto.php',
-  //     type: 'POST',
-  //     data: {id: photo_id,
-  //         description: $('#descr_text').val()}
-  // })
-  // .done(function()
-  // {
-  //     alert("Description updated for photo " + photo_id);
-  //     location.href = "viewPhoto.html?id=" + photo_id;
-  // });
-}
+function updatePhoto(postId, onMutatePayload) {
+  function getPost(id) {
+    return new Promise((res, rej) => $.getJSON(API_URL + 'viewPhoto.php?id=' + id, data => res(data[0])));
+  }
 
-function onComment(postId) {
-  alert('Comment');
+  function updatePost(id, payload) {
+    return new Promise((res, rej) => $.ajax({
+      url: API_URL + 'updatePhoto.php',
+      type: 'POST',
+      data: { id: id, description: JSON.stringify(payload) }
+    }).done(() => res()));
+  }
+
+  return getPost(postId).then(current => {
+    const currentPayload = JSON.parse(current.description);
+    const newPayload = onMutatePayload(currentPayload);
+    return updatePost(postId, newPayload).then(() => loadResults());
+  });
 }
 
 function onLike(postId) {
-  alert('Like');
-  // updatePhoto(postId, function(payload) {
-  //   payload.likeCount = payload.likeCount ? (payload.likeCount + 1) : 1;
-  //   return payload;
-  // });
+  updatePhoto(postId, function(payload) {
+    payload.likes = payload.likes ? (payload.likes + 1) : 1;
+    return payload;
+  });
+}
+
+function onComment(postId) {
+  $('#post-id').val(postId);
+  $('#comment-msg').val('');
+  $('#add-feedback-modal').modal('show');
+}
+
+function setupLeaveFeedback() {
+  $('#add-comment-btn').on('click', function() {
+    const postId = $('#post-id').val();
+    const message = $('#comment-msg').val()
+    
+    updatePhoto(postId, function(payload) {
+      const comments = payload.comments || [];
+      comments.push(message);
+      payload.comments = comments;
+      return payload;
+    }).then(() => {
+      $('#post-id').val('');
+      $('#comment-msg').val('');
+      $('#add-feedback-modal').modal('hide');
+    });
+  });
 }
 
 // --------------------------
