@@ -1,5 +1,5 @@
 var API_URL = 'https://das-lab.org/cse331fa2019/PhotosBackend/';
-var POST_GROUP_ID = 19994;
+var POST_GROUP_ID = 12345698; // production: 789234
 var KEY = null;
 var USER_ID = null;
 
@@ -42,7 +42,7 @@ function loadResults(isInitial = false) {
       <div class="card result_card">
         <img src="${(API_URL + post.src)}" class="card-img-top" onclick="logAction('POST_MISCLICK', 'User clicked post image')"/>
         <h4 onclick="logAction('POST_MISCLICK', 'User clicked post title')">${post.payload.title}</h4>
-        <p class ="commentsP" onclick="logAction('POST_MISCLICK', 'User clicked post description')">${post.payload.description}</p>
+        <p class="description" onclick="logAction('POST_MISCLICK', 'User clicked post description')">${post.payload.description}</p>
         <p class="likeCount" onclick="logAction('POST_MISCLICK', 'User clicked like count')">${post.payload.likes} ${post.payload.likes === 1 ? 'Like' : 'Likes'}</p>
         <button class="likeBtn" onclick="onLike(${post.id})">Like</button>
         <button class="commentBtn" onclick="onComment(${post.id})">Comment</button>
@@ -85,9 +85,12 @@ function loadResults(isInitial = false) {
             description: undefined
           };
         })
-        
+
+      const blackList = ['327'];
       const containsTags = (result) => searchTags.length === 0 || (result.payload.tags || []).some(t => searchTags.includes(t));
-      const displayResults = results.filter(containsTags);
+      const displayResults = results
+        .filter(containsTags)
+        .filter(p => searchTags.length !== 0 || !blackList.includes(p.id));
 
       const render = displayResults.map(result => resultHtml(result)).join(' ');
       $("#resultsCards").html(render);
