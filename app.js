@@ -1,10 +1,9 @@
 var API_URL = 'https://das-lab.org/cse331fa2019/PhotosBackend/';
-var POST_GROUP_ID = 23498;
-var USER_ID = null;
-var USER_PRIVATE_KEY = null;
-var USER_PUBLIC_KEY = null;
+var POST_GROUP_ID = 19994;
+var KEY = null;
 
 $(document).ready(function() {
+  loadAccount();
   loadResults();
   setupCreatePost();
   setupLeaveFeedback();
@@ -15,9 +14,22 @@ var APP = {
   availableTags: []
 };
 
+function loadAccount() {
+  let pk = localStorage.getItem('userPrivateKey');
+  KEY = new JSEncrypt();
+
+  if (pk) {
+    KEY.setPrivateKey(pk);
+  } else if (!pk) {
+    localStorage.setItem('userPrivateKey', KEY.getPrivateKey());
+  }
+}
+
 function loadResults() {
   function resultHtml(post) {
-    console.log(post)
+    const isOwned = post.payload.publicKey === KEY.getPublicKey();
+    const commentCount = (post.payload.comments || []).length || 0;
+
     return `
       <div class="card result_card">
         <img src="${(API_URL + post.src)}" class="card-img-top"/>
@@ -26,6 +38,7 @@ function loadResults() {
         <p class="likeCount">${post.payload.likes} ${post.payload.likes === 1 ? 'Like' : 'Likes'}</p>
         <button class="likeBtn" onclick="onLike(${post.id})">Like</button>
         <button class="commentBtn" onclick="onComment(${post.id})">Comment</button>
+        ${commentCount > 0 && isOwned ? `<button class="viewCommentsBtn" onclick="onViewComments(${post.id})">View ${commentCount} Comment${commentCount === 1 ? '' : 's'}</button>` : ''}
       </div>
     `;
   }
@@ -87,7 +100,8 @@ function setupCreatePost() {
       description: $('#post-description').val(),
       tags: ($('#post-tags').val() || '').toUpperCase().split(' '),
       likes: 0,
-      comments: []
+      comments: [],
+      publicKey: KEY.getPublicKey()
     };
 
     var formData = new FormData(document.forms['uploader']);
@@ -160,19 +174,42 @@ function onComment(postId) {
   $('#add-feedback-modal').modal('show');
 }
 
-// async function getPic(){
+function onViewComments(postId) {
+  function commentHtml(comment) {
+    return `
+      <div class="feedback-comment">
+        ${comment}
+      </div>
+    `;
+  }
 
-//   return
-// }
+  const post = APP.results.find(post => post.id == postId);
+  const comments = post.payload.comments.map(encryptedMessage => KEY.decrypt(encryptedMessage));
+  const renderedComments = comments.map(c => commentHtml(c)).join('');
+
+  $("#view-feedback-comments").html(renderedComments);
+  $('#view-feedback-modal').modal('show');
+}
 
 function setupLeaveFeedback() {
   $('#add-comment-btn').on('click', function() {
     const postId = $('#post-id').val();
     const message = $('#comment-msg').val()
+    const post = APP.results.find(post => post.id === postId);
     
+    if (!post.payload.publicKey) {
+      alert('Comments disabled for this post.');
+      return;
+    }
+
+    const postKey = new JSEncrypt();
+    postKey.setPublicKey(post.payload.publicKey);
+    
+    const encryptedMessage = postKey.encrypt(message);
+
     updatePhoto(postId, function(payload) {
       const comments = payload.comments || [];
-      comments.push(message);
+      comments.push(encryptedMessage);
       payload.comments = comments;
       return payload;
     }).then(() => {
