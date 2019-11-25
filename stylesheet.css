@@ -1,33 +1,46 @@
 #resultsCards {
-    margin-top: 25px;
-    
-  }
+  margin-top: 25px;
+  text-align: center;
+}
 
-  .result_card {
-    width: 400px !important;  
-    margin: 10px;
-    display: inline-block;
-    vertical-align: text-top;
-  }
+.result_card {
+  border: none;
+  background-color:transparent;
+  position: relative;
+  width: 400px !important;  
+  display: inline-block;
+  overflow: hidden;
+}
 
-  .result_card img {
-    height:300px;
-    width: 400px;
+.result_card.img {
+  text-align: center;
+}
+
+.card-img-top{
+  text-align:right;
+  height:300px;
+  width: auto;
+  overflow: hidden;
+}
+
+.commentsP{
+  text-align:left;
+    height:20px;
     overflow: hidden;
-  }
+}
 
-  .commentsP{
-      height:20px;
-      overflow: hidden;
-  }
+.create-post-btn {
 
-  .create-post-btn {
-
-  }
+}
 
 .feedback-comment {
-  padding: 10px;
-  background: #f3f3f3;
-  margin-bottom: 8px;
-  border-radius: 4px;
+padding: 10px;
+background: #f3f3f3;
+margin-bottom: 8px;
+border-radius: 4px;
+}
+
+body{
+background-color: #cccccc;
+background-image: linear-gradient(to right,#c6cbef, #dff6f0);
 }
